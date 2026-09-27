@@ -1,0 +1,23 @@
+{
+  "pop_size": 60,
+  "stage_gens": 40,
+  "duration": 20.0,
+  "seed": 3,
+  "control": "none",
+  "structure": true,
+  "p_add": 0.15,
+  "p_del": 0.25,
+  "p_dup": 0.03,
+  "new_edge_w": 0.3,
+  "predator_speed": 4.5,
+  "wind_enabled": false,
+  "encoding": "direct",
+  "substrate_dir": null,
+  "stages": [
+    1,
+    2,
+    3
+  ],
+  "n_nodes": 4414,
+  "n_edges": 33527
+}

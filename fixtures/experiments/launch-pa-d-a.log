@@ -1,0 +1,117 @@
+
+
+######## 链启动 2026-09-17 13:26:26 ########
+
+=== 实验D 启动 13:26:26 ===
+CMD: C:\Users\demo\workspace\fly-evo\.venv\Scripts\python.exe E:\workspace\fly-evo\src\scripts\batch_run_exp_d.py --seeds 1 2 3
+实验 D: 12 组
+============================================================
+
+[1/12] modular-real-s1 启动...
+
+
+######## 链启动 2026-09-17 14:03:57 ########
+
+=== 实验D 启动 14:03:57 ===
+CMD: C:\Users\demo\workspace\fly-evo\.venv\Scripts\python.exe E:\workspace\fly-evo\src\scripts\batch_run_exp_d.py --seeds 1 2 3
+实验 D: 12 组
+============================================================
+
+[1/12] modular-real-s1 启动...
+[1/12] modular-real-s1 完成 87.9 min log=expd_modular-real_s1.log
+
+[2/12] modular-real-s2 启动...
+[2/12] modular-real-s2 完成 100.6 min log=expd_modular-real_s2.log
+
+[3/12] modular-real-s3 启动...
+[3/12] modular-real-s3 完成 96.9 min log=expd_modular-real_s3.log
+
+[4/12] modular-neutral-s1 启动...
+[4/12] modular-neutral-s1 完成 55.6 min log=expd_modular-neutral_s1.log
+
+[5/12] modular-neutral-s2 启动...
+[5/12] modular-neutral-s2 完成 57.6 min log=expd_modular-neutral_s2.log
+
+[6/12] modular-neutral-s3 启动...
+[6/12] modular-neutral-s3 完成 77.7 min log=expd_modular-neutral_s3.log
+
+[7/12] direct-real-s1 启动...
+[7/12] direct-real-s1 完成 89.1 min log=expd_direct-real_s1.log
+
+[8/12] direct-real-s2 启动...
+Traceback (most recent call last):
+  File "E:\workspace\fly-evo\src\scripts\batch_run_exp_d.py", line 115, in <module>
+  File "E:\workspace\fly-evo\src\scripts\batch_run_exp_d.py", line 100, in main
+    with open(log_path, "w", encoding="utf-8", errors="replace") as lf:
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+            [VENV_PY, str(RUN_SCRIPT)] + argv,
+    
+  File "C:\Users\demo\AppData\Local\Programs\Python\Python314\Lib\subprocess.py", line 557, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\demo\AppData\Local\Programs\Python\Python314\Lib\subprocess.py", line 1240, in communicate
+    sts = self.wait(timeout=self._remaining_time(endtime))
+  File "C:\Users\demo\AppData\Local\Programs\Python\Python314\Lib\subprocess.py", line 1279, in wait
+    return self._wait(timeout=timeout)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\demo\AppData\Local\Programs\Python\Python314\Lib\subprocess.py", line 1608, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['C:\\Users\\demo\\workspace\\fly-evo\\.venv\\Scripts\\python.exe', 'E:\\workspace\\fly-evo\\src\\scripts\\run_evolution.py', '--structure', '--encoding', 'direct', '--stages', '123', '--pop', '60', '--stage-gens', '40', '--duration', '20', '--n-eps', '2', '--workers', '7', '--p-add', '0.15', '--p-del', '0.25', '--p-dup', '0.03', '--new-edge-w', '0.3', '--seed', '2', '--out', 'E:\\workspace\\fly-evo\\results\\expd_direct_real_s2', '--predator-speed', '4.5']' timed out after 7200 seconds
+
+=== 实验D 结束 exit=1 耗时=11.42h ===
+
+=== 实验A 启动 01:29:20 ===
+CMD: C:\Users\demo\workspace\fly-evo\.venv\Scripts\python.exe E:\workspace\fly-evo\src\scripts\batch_run_exp_a.py --seeds 1 2 3
+real: 33527 edges
+rewire: 33527 edges
+degree: 33527 edges
+block: 33527 edges
+实验 A: 12 组
+
+[1/12] real-s1 启动...
+Traceback (most recent call last):
+  File "E:\workspace\fly-evo\src\scripts\batch_run_exp_a.py", line 107, in <module>
+    main()
+    ~~~~^^
+  File "E:\workspace\fly-evo\src\scripts\batch_run_exp_a.py", line 92, in main
+    r = subprocess.run(
+        [VENV_PY, str(RUN_SCRIPT)] + argv,
+        cwd=str(SRC), stdout=lf, stderr=subprocess.STDOUT,
+        timeout=14400,
+    )
+  File "C:\Users\demo\AppData\Local\Programs\Python\Python314\Lib\subprocess.py", line 557, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\demo\AppData\Local\Programs\Python\Python314\Lib\subprocess.py", line 1240, in communicate
+    sts = self.wait(timeout=self._remaining_time(endtime))
+  File "C:\Users\demo\AppData\Local\Programs\Python\Python314\Lib\subprocess.py", line 1279, in wait
+    return self._wait(timeout=timeout)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\demo\AppData\Local\Programs\Python\Python314\Lib\subprocess.py", line 1608, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['C:\\Users\\demo\\workspace\\fly-evo\\.venv\\Scripts\\python.exe', 'E:\\workspace\\fly-evo\\src\\scripts\\run_evolution.py', '--stages', '12', '--pop', '60', '--stage-gens', '60', '--duration', '20', '--n-eps', '2', '--workers', '7', '--seed', '1', '--substrate-dir', 'E:\\workspace\\fly-evo\\results\\topology_substrates', '--out', 'E:\\workspace\\fly-evo\\results\\expa_real_s1']' timed out after 14400 seconds
+
+=== 实验A 结束 exit=1 耗时=4.00h ===
+
+全部结束: {'D': 1, 'A': 1}
+
+
+######## 链启动 2026-09-26 15:07:23 ########
+
+=== 实验D 启动 15:07:23 ===
+CMD: C:\Users\demo\workspace\fly-evo\.venv\Scripts\python.exe E:\workspace\fly-evo\src\scripts\batch_run_exp_d.py --seeds 1 2 3
+实验 D: 12 组
+============================================================
+[1/12] modular-real-s1 SKIP (report.md 已存在)
+[2/12] modular-real-s2 SKIP (report.md 已存在)
+[3/12] modular-real-s3 SKIP (report.md 已存在)
+[4/12] modular-neutral-s1 SKIP (report.md 已存在)
+[5/12] modular-neutral-s2 SKIP (report.md 已存在)
+[6/12] modular-neutral-s3 SKIP (report.md 已存在)
+[7/12] direct-real-s1 SKIP (report.md 已存在)
+
+[8/12] direct-real-s2 启动...
+[8/12] direct-real-s2 完成 129.1 min log=expd_direct-real_s2.log
+
+[9/12] direct-real-s3 启动...

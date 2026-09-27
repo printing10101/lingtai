@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="dark" />
+<title>实验直播 · 灵台</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="experiments.css" />
+</head>
+<body class="live">
+
+<!-- 顶条：LIVE 徽标 + 视图切换 + 时钟，常驻不滚 -->
+<header class="live-top">
+  <div class="live-brand">
+    <i class="live-dot" id="live-dot" aria-hidden="true"></i>
+    <b>实验直播</b>
+    <span id="live-sub">—</span>
+  </div>
+  <div class="live-right">
+    <nav class="viewseg" aria-label="视图切换">
+      <a class="vt" href="/">看板</a>
+      <a class="vt on" href="/experiments" aria-current="page">实验直播</a>
+      <a class="vt" href="/master">总控</a>
+    </nav>
+    <div class="live-clock" id="live-clock">—</div>
+  </div>
+</header>
+
+<main class="live-wrap" id="live-root">
+  <div class="empty-state">正在连接采集服务…</div>
+</main>
+
+<script src="exp-live.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+{
+  "name": "lingtai",
+  "version": "0.6.0",
+  "private": true,
+  "description": "灵台：只读采集看清 8080 网关驻留/显存/调用方/换卡，控制层按 apps.json 拉起自研软件并切换模型",
+  "main": "electron/main.js",
+  "productName": "灵台",
+  "scripts": {
+    "serve": "node server.js",
+    "app": "electron .",
+    "test": "node --test test/parsers.test.mjs test/exparsers.test.mjs test/render-contract.test.mjs test/exp-live-contract.test.mjs test/control.test.mjs test/master.test.mjs test/master-render.test.mjs",
+    "dist": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "44.0.0",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.lingtai.app",
+    "productName": "灵台",
+    "asar": false,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "package.json",
+      "config.json",
+      "apps.json",
+      "server.js",
+      "src/**",
+      "public/**",
+      "electron/**",
+      "!test/**",
+      "!history/**",
+      "!fixtures/**",
+      "!dist/**"
+    ],
+    "extraMetadata": {
+      "main": "electron/main.js"
+    },
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "Lingtai-portable.${ext}"
+    },
+    "portable": {
+      "artifactName": "Lingtai-portable.${ext}"
+    }
+  }
+}

@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Token 塔台 · 开发监控台</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --border: #262b36; --text: #e6e9ef; --dim: #8b93a5;
+    --zcode: #4f8ef7; --codex: #a06bff; --claude: #f59e0b; --git: #34d399; --live: #34d399;
+    --qoder: #22d3ee; --dsh: #a3e635; --workbuddy: #f472b6; --hermes: #e879f9;
+    --llamacpp: #f97316;
+    --waiting: #f59e0b; --working: #60a5fa;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 "Segoe UI", "Microsoft YaHei", sans-serif; }
+  header { display: flex; align-items: center; gap: 12px; padding: 14px 22px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 1; }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #e05252; flex: none; }
+  .dot.on { background: var(--live); box-shadow: 0 0 6px var(--live); animation: pulse 2s infinite; }
+  @keyframes pulse { 50% { opacity: .45; } }
+  #clock { margin-left: auto; color: var(--dim); font-variant-numeric: tabular-nums; font-size: 13px; }
+  .hdrbtn { background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--dim); font-size: 15px; padding: 3px 9px; cursor: pointer; }
+  .hdrbtn.on { color: var(--waiting); border-color: var(--waiting); }
+  main { padding: 18px 22px 60px; max-width: 1280px; margin: 0 auto; }
+  h2 { font-size: 13px; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; margin: 24px 0 10px; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .card .name { font-weight: 600; font-size: 15px; }
+  .card .path { color: var(--dim); font-size: 12px; margin: 2px 0 10px; word-break: break-all; }
+  .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .chip { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #20242e; color: var(--dim); }
+  .chip.branch { color: #7dd3fc; }
+  .chip.dirty { color: #fca5a5; }
+  .commit { font-size: 12px; color: var(--dim); margin-top: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .commit b { color: var(--text); font-weight: 600; }
+  /* 项目卡片右上角悬停出现的隐藏按钮 */
+  .card { position: relative; }
+  .card .hidebtn { position: absolute; top: 8px; right: 8px; border: none; background: none; color: var(--dim); cursor: pointer; font-size: 12px; padding: 2px 7px; border-radius: 6px; opacity: 0; transition: opacity .15s; }
+  .card:hover .hidebtn { opacity: .8; }
+  .card .hidebtn:hover { opacity: 1; background: #20242e; color: var(--text); }
+  /* 已隐藏项目管理条 */
+  .hiddenbar { margin-top: 10px; color: var(--dim); font-size: 12px; }
+  .hiddenbar summary { cursor: pointer; display: inline-block; }
+  .hiddenbar summary:hover { color: var(--text); }
+  .hiddenbar .chip { cursor: pointer; margin-left: 6px; }
+  .hiddenbar .chip:hover { color: var(--text); }
+  /* 新建/添加项目表单 */
+  h2 .hdrbtn { margin-left: 10px; text-transform: none; letter-spacing: 0; font-size: 12px; }
+  .newproj { display: none; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0 2px; max-width: 760px; }
+  .newproj input { flex: 1; min-width: 260px; background: #20242e; border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 6px 10px; font-size: 13px; }
+  .newproj button { background: #20242e; border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 5px 12px; cursor: pointer; font-size: 13px; }
+  .newproj button:hover { border-color: var(--dim); }
+  .newproj button:disabled { opacity: .5; cursor: default; }
+  .newproj .msg { color: #fca5a5; font-size: 12px; }
+  .badge { font-size: 11px; padding: 1px 7px; border-radius: 4px; color: #0b0d10; font-weight: 700; background: #6b7280; flex: none; }
+  .badge.zcode { background: var(--zcode); } .badge.codex { background: var(--codex); }
+  .badge.claude { background: var(--claude); } .badge.git { background: var(--git); }
+  .badge.qoder { background: var(--qoder); color: #0b0d10; }
+  .badge.dsh { background: var(--dsh); } .badge.workbuddy { background: var(--workbuddy); }
+  .badge.hermes { background: var(--hermes); }
+  .badge.llamacpp { background: var(--llamacpp); }
+  /* 正在发生：会话卡片 */
+  #live { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; }
+  .sess { display: flex; gap: 10px; align-items: flex-start; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; }
+  .sess.waiting { border-color: var(--waiting); box-shadow: 0 0 10px rgba(245, 158, 11, .15); }
+  .livedot { width: 8px; height: 8px; border-radius: 50%; background: var(--working); animation: pulse 1.6s infinite; flex: none; margin-top: 6px; }
+  .livedot.waiting { background: var(--waiting); animation: none; box-shadow: 0 0 8px var(--waiting); }
+  .sessmain { min-width: 0; flex: 1; }
+  .sesstitle { font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sessmeta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 4px; font-size: 12px; color: var(--dim); }
+  .phasechip { font-size: 11px; padding: 1px 8px; border-radius: 999px; }
+  .phasechip.working { color: var(--working); background: rgba(96, 165, 250, .12); }
+  .phasechip.waiting { color: var(--waiting); background: rgba(245, 158, 11, .15); font-weight: 600; }
+  .sessproj { color: #7dd3fc; }
+  .timeline { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; max-height: 420px; overflow-y: auto; }
+  .ev { display: flex; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--border); font-size: 13px; align-items: baseline; }
+  .ev:last-child { border-bottom: none; }
+  .ev time { color: var(--dim); font-variant-numeric: tabular-nums; flex: none; }
+  .ev .proj { color: #7dd3fc; flex: none; }
+  .ev .detail { color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .empty { color: var(--dim); font-size: 13px; padding: 8px 0; }
+  /* 全机用量 */
+  #totals { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .totcard { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
+  .totcard.uninstalled { opacity: .55; } /* 卸载的工具卡片置灰，历史用量仍在 */
+  .totlabel { color: var(--dim); font-size: 12px; }
+  .totnum { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; margin: 2px 0 4px; }
+  .totsub { color: var(--dim); font-size: 11px; font-variant-numeric: tabular-nums; }
+  /* 工具用量 */
+  #tools { display: grid; grid-template-columns: repeat(auto-fill, minmax(235px, 1fr)); gap: 12px; }
+  .totlabel .badge { margin-right: 4px; }
+  /* 统计 */
+  .statwrap { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+  .heatmap { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 13px); gap: 3px; }
+  .hc { width: 13px; height: 13px; border-radius: 3px; background: #20242e; }
+  .hc.l1 { background: #166534; } .hc.l2 { background: #16a34a; }
+  .hc.l3 { background: #34d399; } .hc.l4 { background: #a7f3d0; }
+  .legend { display: flex; align-items: center; gap: 4px; color: var(--dim); font-size: 12px; margin-top: 8px; }
+  .legend .hc { width: 11px; height: 11px; }
+  .projtable { max-height: 320px; min-width: 380px; flex: 1; }
+  .prow { display: flex; gap: 12px; padding: 7px 14px; border-bottom: 1px solid var(--border); font-size: 13px; align-items: baseline; }
+  .prow:last-child { border-bottom: none; }
+  .prow .pname { font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prow .pnum { color: var(--dim); font-variant-numeric: tabular-nums; flex: none; }
+  /* 会话卡片里的分工具 token 条与等待置灰 */
+  .sess.stale { opacity: .55; }
+  .sess.stale.waiting { box-shadow: none; }
+  .toolbar { display: flex; height: 5px; border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .toolbar span { min-width: 2px; }
+  /* 时间线日期分隔 */
+  .ev.daysep { justify-content: center; color: var(--dim); font-size: 11px; background: #1b1f28; padding: 3px 14px; }
+  /* 热力图口径切换 */
+  .seg { margin-left: 10px; display: inline-flex; gap: 4px; }
+  .seg button { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--dim); font-size: 11px; padding: 1px 8px; cursor: pointer; text-transform: none; letter-spacing: 0; }
+  .seg button.on { color: var(--text); border-color: var(--dim); }
+  /* 未推送/落后提交芯片：有未推送的活儿亮黄色，提醒"干完别忘了推" */
+  .chip.ahead { color: #fbbf24; }
+  /* 会话卡片上的当前模型芯片 */
+  .chip.model { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* 通知点击定位：目标会话卡片闪一圈 */
+  .sess.flash { border-color: var(--waiting); box-shadow: 0 0 14px rgba(245, 158, 11, .35); }
+  /* 近 84 天各时段分布柱图 */
+  .byhour { display: grid; grid-template-columns: repeat(24, 10px); gap: 2px; align-items: end; height: 64px; }
+  .byhour span { width: 10px; border-radius: 2px 2px 0 0; min-height: 2px; }
+  .byhour-x { display: grid; grid-template-columns: repeat(24, 10px); gap: 2px; color: var(--dim); font-size: 10px; margin-top: 3px; }
+  /* 时间线过滤 chips */
+  .tlfilter { display: flex; gap: 4px; flex-wrap: wrap; margin: 0 0 8px; }
+  .tlfilter button { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--dim); font-size: 11px; padding: 1px 8px; cursor: pointer; }
+  .tlfilter button.on { color: var(--text); border-color: var(--dim); }
+  /* 日预算超限：今日卡片描红、预算行加粗变红 */
+  .totcard.over { border-color: #f87171; }
+  .totsub.overbudget { color: #f87171; font-weight: 600; }
+  .weekly { margin-top: 8px; }
+</style>
+</head>
+<body>
+<header>
+  <span class="dot" id="conn"></span>
+  <h1>Token 塔台 · 开发监控台</h1>
+  <button class="hdrbtn" id="notify" title="agent 等你确认时弹通知+响铃">🔕</button>
+  <span id="clock"></span>
+</header>
+<main>
+  <h2>全机用量</h2>
+  <div id="totals"></div>
+  <div id="weekly" class="totsub weekly"></div>
+  <h2>工具用量</h2>
+  <div id="tools"></div>
+  <h2>正在发生</h2>
+  <div id="live"></div>
+  <h2>项目<button class="hdrbtn" id="newproj-btn" title="新建项目，或把已有文件夹纳入监控">＋ 新建</button></h2>
+  <div id="newproj-form" class="newproj">
+    <input id="newproj-path" type="text" placeholder="D:\path\to\project（目录不存在会自动创建并 git init，已存在则直接纳入监控）">
+    <button id="newproj-pick">选择文件夹</button>
+    <button id="newproj-go">创建 / 添加</button>
+    <span id="newproj-msg" class="msg"></span>
+  </div>
+  <div id="projects" class="grid"></div>
+  <div id="hiddenbar" class="hiddenbar"></div>
+  <h2>统计<span class="seg" id="hmseg"><button data-m="events">事件</button><button data-m="tokens">token</button></span></h2>
+  <div class="statwrap">
+    <div>
+      <div id="heatmap" class="heatmap"></div>
+      <div class="legend">少 <span class="hc"></span><span class="hc l1"></span><span class="hc l2"></span><span class="hc l3"></span><span class="hc l4"></span> 多 · 近 84 天活跃</div>
+    </div>
+    <div>
+      <div id="byhour" class="byhour"></div>
+      <div id="byhour-x" class="byhour-x"><span style="grid-column:1">0</span><span style="grid-column:7">6</span><span style="grid-column:13">12</span><span style="grid-column:19">18</span><span style="grid-column:24">23</span></div>
+      <div class="legend">近 84 天各时段事件分布（0–23 时）</div>
+    </div>
+    <div id="projstats" class="timeline projtable"></div>
+  </div>
+  <h2>活动时间线</h2>
+  <div id="tlfilter" class="tlfilter"></div>
+  <div id="timeline" class="timeline"></div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const KIND_TEXT = { commit: '新提交', branch: '切分支', dirty: '改动', push: '已推送', activity: '会话活动', waiting: '等你确认', run: '运行', audit: '安全审计', prompt: '收到新指令', stop: '这轮干完', end: '会话结束', notify: '通知', substart: '子代理启动', substop: '子代理结束', away: '离线期间' };
+const PHASE_TEXT = { working: '工作中', waiting: '等你确认' };
+
+function relTime(t) {
+  if (!t) return '';
+  const ms = typeof t === 'number' ? t : Date.parse(t);
+  if (Number.isNaN(ms)) return '';
+  const diff = Date.now() - ms;
+  if (diff < 60000) return '刚刚';
+  if (diff < 3600000) return Math.floor(diff / 60000) + ' 分钟前';
+  if (diff < 86400000) return Math.floor(diff / 3600000) + ' 小时前';
+  return Math.floor(diff / 86400000) + ' 天前';
+}
+
+function fmtTokens(n) {
+  if (!n || n <= 0) return '';
+  // 万/亿是中文里自然的量级；不足 1 万时退回千分位数字，避免"0.x 万"这种别扭读法
+  if (n >= 1e8) return (n / 1e8).toFixed(1) + '亿';
+  if (n >= 1e4) return (n / 1e4).toFixed(1) + '万';
+  return n.toLocaleString('en-US');
+}
+
+// credits 是 CLI 自己上报的计量单位，量级比 token 小得多，保留小数才有意义
+function fmtCredits(n) {
+  if (!n || n <= 0) return '0';
+  if (n >= 100) return String(Math.round(n));
+  if (n >= 1) return n.toFixed(1);
+  return n.toFixed(2);
+}
+
+function fmtDur(ms) {
+  if (ms < 60000) return '不到 1 分钟';
+  if (ms < 3600000) return Math.floor(ms / 60000) + ' 分钟';
+  if (ms < 86400000) return (ms / 3600000).toFixed(1) + ' 小时';
+  return Math.floor(ms / 86400000) + ' 天';
+}
+
+let state = null;
+let stats = null;
+
+function render() {
+  if (!state) return;
+  const live = state.sessions.filter(s => s.phase === 'waiting' || Date.now() - s.lastSeen < state.liveWindowMs);
+  // 等确认的排前面，其余按最近活动排序
+  live.sort((a, b) => (a.phase === 'waiting' ? 0 : 1) - (b.phase === 'waiting' ? 0 : 1) || b.lastSeen - a.lastSeen);
+  // 等确认数进窗口标题，最小化/被遮挡时任务栏也能瞟到
+  const nWait = live.filter(s => s.phase === 'waiting').length;
+  document.title = (nWait ? `(${nWait} 等确认) ` : '') + 'Token 塔台 · 开发监控台';
+  $('live').innerHTML = live.length ? live.map(s => {
+    const tok = (fmtTokens(s.tokens.in) || fmtTokens(s.tokens.out))
+      ? `<span title="累计输入 ${s.tokens.in || 0} / 输出 ${s.tokens.out || 0} tokens">tok ${[fmtTokens(s.tokens.in), fmtTokens(s.tokens.out)].filter(Boolean).join('/')}</span>` : '';
+    // 只报 credits 的工具（Qoder）：token 数由上下文占比反推，credits 才是官方原值
+    const cred = s.credits
+      ? `<span class="chip" title="该会话官方上报的 credits（token 数被抹平，这是唯一真实用量）">cr ${fmtCredits(s.credits)}</span>` : '';
+    // 等待中的会话不再有日志写入，显示"已等多久"并给置灰档：亮的是刚等你的，暗的是挂了很久的
+    const waitMs = s.phase === 'waiting' ? Date.now() - (s.phaseSince || s.lastSeen) : 0;
+    const stale = waitMs > 30 * 60000;
+    // 工作中的卡片对称显示"这轮干了多久"：一眼看出这轮活是不是跑太久了
+    const when = s.phase === 'waiting'
+      ? `<span style="color:var(--waiting)">已等 ${fmtDur(waitMs)}</span>`
+      : (s.phase === 'working'
+        ? `<span title="本轮从最近一次阶段切换起算">已干 ${fmtDur(Math.max(0, Date.now() - (s.phaseSince || s.lastSeen)))}</span>`
+        : `<span>${relTime(s.lastSeen)}</span>`);
+    return `
+    <div class="sess ${s.phase === 'waiting' ? 'waiting' : ''} ${stale ? 'stale' : ''}" data-skey="${esc(s.tool + '|' + s.file)}">
+      <span class="livedot ${s.phase === 'waiting' ? 'waiting' : ''}"></span>
+      <span class="badge ${esc(s.tool)}">${esc(s.tool)}</span>
+      <div class="sessmain">
+        <div class="sesstitle" title="${esc(s.title || s.file)}">${esc(s.title || s.file)}</div>
+        <div class="sessmeta">
+          ${s.phase ? `<span class="phasechip ${esc(s.phase)}">${PHASE_TEXT[s.phase] || s.phase}</span>` : ''}
+          ${s.project ? `<span class="sessproj">${esc(s.project)}</span>` : ''}
+          ${s.model ? `<span class="chip model" title="当前模型 ${esc(s.model)}">${esc(s.model)}</span>` : ''}
+          ${tok}
+          ${cred}
+          ${when}
+        </div>
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty">当前没有活跃的 agent 会话（持续监听各 AI 编程工具的会话与活动日志）</div>';
+
+  $('projects').innerHTML = state.projects.map(p => {
+    // 每个项目的累计 token（入账起），从统计接口按项目名取
+    const ps = stats && stats.projects ? stats.projects.find(x => x.name === p.name) : null;
+    const tokChip = ps && (ps.tokensIn || 0) + (ps.tokensOut || 0) > 0
+      ? `<span class="chip" title="累计输入/输出 tokens（自入账起）">tok ${[fmtTokens(ps.tokensIn), fmtTokens(ps.tokensOut)].filter(Boolean).join('/')}</span>` : '';
+    // 未推送/落后：分支设了 upstream 才有值；有未推送的亮黄提醒"干完别忘了推"
+    const abChip = (p.ahead > 0 || p.behind > 0)
+      ? `<span class="chip ${p.ahead > 0 ? 'ahead' : ''}" title="本地领先远端 ${p.ahead || 0} 个提交未推送，落后 ${p.behind || 0} 个">↑${p.ahead || 0}${p.behind ? ' ↓' + p.behind : ''}</span>` : '';
+    const editBtn = state.editorAvailable
+      ? `<button class="hidebtn" data-edit="${esc(p.path)}" title="用 VS Code 打开" style="right:60px">🆚</button>` : '';
+    return `
+    <div class="card">
+      ${editBtn}
+      <button class="hidebtn" data-open="${esc(p.path)}" title="在资源管理器中打开" style="right:34px">📂</button>
+      <button class="hidebtn" data-hide="${esc(p.path)}" title="从监控移除（统计保留，可恢复）">✕</button>
+      <div class="name">${esc(p.name)}</div>
+      <div class="path">${esc(p.path)}</div>
+      <div class="row">
+        <span class="chip branch">⎇ ${esc(p.branch || '?')}</span>
+        <span class="chip ${p.dirty ? 'dirty' : ''}">${p.dirty ? p.dirty + ' 个未提交' : '工作区干净'}</span>
+        ${abChip}
+        ${tokChip}
+        ${p.lastAgentActivity ? `<span class="chip">agent ${relTime(p.lastAgentActivity)}</span>` : ''}
+      </div>
+      ${p.lastCommit ? `<div class="commit"><b>${esc(p.lastCommit.hash)}</b> ${esc(p.lastCommit.msg)} · ${relTime(p.lastCommit.time)}</div>` : ''}
+      ${p.error ? `<div class="commit" style="color:#fca5a5">${esc(p.error)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  // 已隐藏项目管理条：点名字恢复。重绘会重置 <details> 的展开状态，先读后还原，
+  // 不然用户展开着找要恢复的项目，下一次刷新（至多 30 秒）就被折回去
+  const hiddenList = state.hiddenProjects || [];
+  const hiddenEl = $('hiddenbar');
+  const wasOpen = !!(hiddenEl.querySelector('details') && hiddenEl.querySelector('details').open);
+  hiddenEl.innerHTML = hiddenList.length
+    ? `<details${wasOpen ? ' open' : ''}><summary>已隐藏 ${hiddenList.length} 个项目 · 点开恢复</summary>${hiddenList.map(h =>
+        `<span class="chip" data-restore="${esc(h.path)}" title="恢复监控 ${esc(h.name)}">↩ ${esc(h.name)}</span>`).join('')}</details>`
+    : '';
+
+  renderStats();
+  renderTlFilter();
+  renderTimeline();
+
+  checkNotifications(live);
+}
+
+// ---------- 时间线过滤：按工具 + 只看等确认，选择记在 localStorage ----------
+let tlTool = localStorage.getItem('wb-tl-tool') || '';
+let tlWaitOnly = localStorage.getItem('wb-tl-wait') === '1';
+
+function renderTlFilter() {
+  const tools = [...new Set(state.events.map(e => e.tool))];
+  $('tlfilter').innerHTML =
+    `<button data-tl="" class="${!tlTool && !tlWaitOnly ? 'on' : ''}">全部</button>`
+    + tools.map(t => `<button data-tl="${esc(t)}" class="${tlTool === t ? 'on' : ''}">${esc(t)}</button>`).join('')
+    + `<button data-tlwait="1" class="${tlWaitOnly ? 'on' : ''}">只看等确认</button>`;
+}
+
+$('tlfilter').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.tlwait !== undefined) {
+    tlWaitOnly = !tlWaitOnly;
+    localStorage.setItem('wb-tl-wait', tlWaitOnly ? '1' : '0');
+  } else {
+    tlTool = b.dataset.tl || '';
+    localStorage.setItem('wb-tl-tool', tlTool);
+  }
+  renderTlFilter();
+  renderTimeline();
+});
+
+function renderTimeline() {
+  const shown = state.events.filter(e => (!tlTool || e.tool === tlTool) && (!tlWaitOnly || e.kind === 'waiting')).slice(0, 80);
+  // 跨天插入日期分隔行：时间线里只有时分秒，昨天的条目不该看起来像今天的
+  let lastDay = '';
+  const rows = [];
+  for (const e of shown) {
+    const d = new Date(e.ts);
+    const dayKey = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    if (dayKey !== lastDay) {
+      lastDay = dayKey;
+      rows.push(`<div class="ev daysep">${d.getMonth() + 1} 月 ${d.getDate()} 日</div>`);
+    }
+    rows.push(`
+    <div class="ev">
+      <time>${d.toLocaleTimeString('zh-CN', { hour12: false })}</time>
+      <span class="badge ${esc(e.tool)}">${esc(e.tool)}</span>
+      <span${e.kind === 'waiting' ? ' style="color:var(--waiting);font-weight:600"' : ''}>${esc(KIND_TEXT[e.kind] || e.kind)}</span>
+      ${e.project ? `<span class="proj">${esc(e.project)}</span>` : ''}
+      ${e.detail ? `<span class="detail">${esc(e.detail)}</span>` : ''}
+    </div>`);
+  }
+  // 重绘接住原来的滚动位置：每次 WS 推送/30 秒轮询都会整表重绘，
+  // 不接住的话用户正往下翻历史事件，一刷新就被拽回顶部
+  const tl = $('timeline');
+  const keepScroll = tl.scrollTop;
+  tl.innerHTML = rows.join('') || '<div class="ev"><span class="empty">没有匹配的事件</span></div>';
+  tl.scrollTop = keepScroll;
+}
+
+// ---------- 统计（全机用量 + 热力图 + 项目累计） ----------
+const TOOL_COLORS = { zcode: '#4f8ef7', codex: '#a06bff', claude: '#f59e0b', git: '#34d399', qoder: '#22d3ee', dsh: '#a3e635', workbuddy: '#f472b6', hermes: '#e879f9', llamacpp: '#f97316' };
+
+// 模型名常带 provider 前缀（如 openai/gpt-5），展示时剥掉第一段
+const shortModel = m => String(m || '').replace(/^[^/]+\//, '');
+
+// 本地模型：服务端从各工具账本里认出的"跑在本机推理端点（llama.cpp 等）"的模型
+const isLocalModel = m => !!(stats && stats.localModels && stats.localModels[m]);
+const localMark = m => isLocalModel(m) ? '⚙' : '';
+
+// 用量卡片底部的分工具占比条 + 分模型明细 + 成本（pricing 没配时服务端不吐 cost 字段）
+function toolBreakdown(t) {
+  const rows = Object.entries(t.byTool || {}).filter(([, u]) => (u.in || 0) + (u.out || 0) > 0);
+  const cost = t.cost != null
+    ? `<div class="totsub" title="按 config.json 里 pricing 的每百万 token 单价估算">≈ ${esc(stats.totals.currency || '$')}${t.cost.toFixed(2)}</div>`
+    : '';
+  const models = Object.entries(t.byModel || {}).filter(([, u]) => (u.in || 0) + (u.out || 0) > 0)
+    .sort((a, b) => (b[1].in + b[1].out) - (a[1].in + a[1].out));
+  const modelLine = models.length
+    ? `<div class="totsub" title="按模型累计（自分模型入账起，旧数据无模型归属）；⚙ = 本地模型（跑在本机推理端点上）">模型 ${models.map(([m, u]) => `${esc(shortModel(m))}${localMark(m)} ${fmtTokens((u.in || 0) + (u.out || 0))}`).join(' · ')}</div>`
+    : '';
+  if (!rows.length) return modelLine + cost;
+  const total = rows.reduce((s, [, u]) => s + (u.in || 0) + (u.out || 0), 0);
+  const bar = rows.map(([k, u]) => {
+    const pct = ((u.in || 0) + (u.out || 0)) / total * 100;
+    return `<span style="flex:${pct.toFixed(2)};background:${TOOL_COLORS[k] || '#6b7280'}" title="${esc(k)} ${pct.toFixed(0)}%"></span>`;
+  }).join('');
+  const legend = rows.map(([k, u]) =>
+    `<span style="color:${TOOL_COLORS[k] || 'var(--dim)'}">${esc(k)} ${fmtTokens((u.in || 0) + (u.out || 0))}</span>`).join(' · ');
+  return `<div class="toolbar">${bar}</div><div class="totsub">${legend}</div>${modelLine}${cost}`;
+}
+
+function renderTotals() {
+  if (!stats || !stats.totals) return;
+  const budget = stats.totals.budget;
+  const cards = [
+    ['今日 · 本机全部 AI CLI', stats.totals.today, true],
+    ['近 7 天 · 本机全部 AI CLI', stats.totals.week],
+    ['累计 · 本机全部 AI CLI', stats.totals.all],
+  ];
+  // 离线期间盘点：塔台关着的时段各 CLI 照常消耗，启动补账对出这段差额。
+  // 至少离线 10 分钟且有量才出卡，频繁重启不刷屏；核对窗没走完时标"统计中"
+  const away = state && state.away;
+  if (away && (away.total.in || 0) + (away.total.out || 0) > 0 && away.ms >= 600000) {
+    cards.push([
+      `塔台离线期间 · ${fmtDur(away.ms)}${away.settled ? '' : ' · 统计中'}`,
+      { ...away.total, byTool: away.byTool },
+      false,
+      '<div class="totsub" title="上一次运行的心跳快照与当前累计之差；各数据源的重启补账到齐后数字定格">不在场时段的消耗，按各工具拆分如下</div>',
+    ]);
+  }
+  $('totals').innerHTML = cards.map(([label, t, isToday, note]) => {
+    if (!t) return '';
+    const main = fmtTokens((t.in || 0) + (t.out || 0)) || '0';
+    // 日预算：config.json 的 budget.dailyTokens / dailyCost，超限整卡描红
+    let budgetLine = '';
+    let over = false;
+    if (isToday && budget && (budget.dailyTokens || budget.dailyCost)) {
+      const parts = [];
+      if (budget.dailyTokens) {
+        const used = (t.in || 0) + (t.out || 0);
+        const pct = Math.round(used / budget.dailyTokens * 100);
+        over = over || used > budget.dailyTokens;
+        parts.push(`<span class="${used > budget.dailyTokens ? 'overbudget' : ''}">日预算 ${fmtTokens(budget.dailyTokens)} · 已用 ${pct}%</span>`);
+      }
+      if (budget.dailyCost && t.cost != null) {
+        over = over || t.cost > budget.dailyCost;
+        parts.push(`<span class="${t.cost > budget.dailyCost ? 'overbudget' : ''}">成本预算 ${esc(stats.totals.currency || '$')}${budget.dailyCost} · 已用 ${t.cost.toFixed(2)}</span>`);
+      }
+      if (parts.length) budgetLine = `<div class="totsub">${parts.join(' · ')}</div>`;
+    }
+    return `
+    <div class="totcard ${over ? 'over' : ''}">
+      <div class="totlabel">${label}</div>
+      <div class="totnum" title="输入+输出 tokens">${main}</div>
+      <div class="totsub">输入 ${fmtTokens(t.in) || 0} · 输出 ${fmtTokens(t.out) || 0}</div>
+      <div class="totsub" title="命中缓存的输入 tokens，按 API 计价远便宜于普通输入">缓存读 ${fmtTokens(t.cr) || 0}</div>
+      ${t.local ? `<div class="totsub" title="流经本机推理端点（llama.cpp / LM Studio 等）的模型 token 合计，不花 API 钱、烧的是本地 GPU">其中本地模型 ${fmtTokens(t.local)}</div>` : ''}
+      ${budgetLine}
+      ${note || ''}
+      ${toolBreakdown(t)}
+    </div>`;
+  }).join('');
+  renderWeekly();
+}
+
+// 近 7 天回顾一行：token、事件、最忙的一天、成本估算（配了 pricing 才有）
+function renderWeekly() {
+  const el = $('weekly');
+  if (!stats || !stats.days) { el.innerHTML = ''; return; }
+  const byDate = new Map(stats.days.map(d => [d.date, d]));
+  const noon = new Date(); noon.setHours(12, 0, 0, 0);
+  const WD = '日一二三四五六';
+  let tok = 0, ev = 0, best = null;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(noon.getTime() - i * 86400000);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const day = byDate.get(key);
+    if (!day) continue;
+    const dt = (day.tokensIn || 0) + (day.tokensOut || 0);
+    tok += dt;
+    ev += day.events || 0;
+    if (!best || dt > best.t) best = { wd: d.getDay(), t: dt };
+  }
+  const cost = stats.totals.week && stats.totals.week.cost;
+  el.innerHTML = `近 7 天：${fmtTokens(tok) || 0} tokens · ${ev} 事件`
+    + (best && best.t > 0 ? ` · 最忙周${WD[best.wd]}（${fmtTokens(best.t)}）` : '')
+    + (cost != null ? ` · ≈${esc(stats.totals.currency || '$')}${cost.toFixed(2)}` : '');
+}
+
+// 热力图口径：按事件数或按 token（token 口径更贴近"干了很多活"，事件口径更贴近"动了几次"）
+let hmMode = localStorage.getItem('wb-hm') || 'events';
+
+// 工具用量：电脑上有哪些编程工具、各自的 token/活动（token 工具累计来自台账归类，含修复前的历史）。
+// 工具卸载后 installed=false：卡片继续显示历史用量（台账不删），标签从"监控中"变"已卸载"
+function renderTools() {
+  if (!stats || !stats.tools) return;
+  const order = { token: 0, activity: 1, none: 2 };
+  const list = [...stats.tools].sort((a, b) =>
+    order[a.level] - order[b.level]
+    || ((b.tokens ? b.tokens.all.in + b.tokens.all.out : 0) - (a.tokens ? a.tokens.all.in + a.tokens.all.out : 0))
+    || (b.events || 0) - (a.events || 0));
+  const gone = t => t.installed === false;
+  $('tools').innerHTML = list.map(t => {
+    if (t.level === 'token') {
+      const all = t.tokens.all, today = t.tokens.today, week = t.tokens.week;
+      // tokenKind='context'：该 CLI 把 input/output 抹成 0，token 数由上下文占比反推，
+      // 口径与计费 token 不同，所以卡片上要写清楚，且不参与成本估算
+      const isCtx = t.tokenKind === 'context';
+      const models = Object.entries(t.models || {}).sort((a, b) => (b[1].in + b[1].out) - (a[1].in + a[1].out));
+      const modelLine = models.length
+        ? `<div class="totsub" title="分模型累计（自分模型入账起，旧数据无模型归属）；⚙ = 本地模型（跑在本机推理端点上）">模型 ${models.map(([m, u]) => `${esc(shortModel(m))}${localMark(m)} ${fmtTokens((u.in || 0) + (u.out || 0))}`).join(' · ')}</div>`
+        : '';
+      const costLine = t.cost != null && !isCtx
+        ? `<div class="totsub" title="按 config.json 里 pricing 的每百万 token 单价估算累计成本">≈ ${esc(stats.totals.currency || '$')}${t.cost.toFixed(2)}</div>` : '';
+      const tokLine = isCtx
+        ? `<div class="totsub" title="官方不上报 输入/输出 分列，只给 context_usage_ratio 与 credits">上下文净增 ${fmtTokens(all.in) || 0} · 输出/缓存未上报</div>`
+        : `<div class="totsub" title="累计 输入/输出/缓存读">入 ${fmtTokens(all.in) || 0} · 出 ${fmtTokens(all.out) || 0} · 缓存读 ${fmtTokens(all.cr) || 0}</div>`;
+      const credLine = t.credits
+        ? `<div class="totsub" title="CLI 官方上报的 credits，与 token 是两套口径，不并入上面的累计">credits ${fmtCredits(t.credits.all)} · 今日 ${fmtCredits(t.credits.today)} · 近 7 天 ${fmtCredits(t.credits.week)}</div>` : '';
+      return `
+      <div class="totcard${gone(t) ? ' uninstalled' : ''}">
+        <div class="totlabel"><span class="badge ${esc(t.tool)}">${esc(t.name)}</span>${gone(t) ? '<span title="安装目录已不存在，历史用量保留在台账里">已卸载</span>' : '监控中'}</div>
+        <div class="totnum" title="${isCtx ? '累计新增上下文 tokens（Σ Δcontext_usage_ratio × contextWindow）' : '累计输入+输出 tokens'}">${fmtTokens(all.in + all.out) || 0}</div>
+        ${tokLine}
+        <div class="totsub">今日 ${fmtTokens(today.in + today.out) || 0} · 近 7 天 ${fmtTokens(week.in + week.out) || 0}</div>
+        ${credLine}
+        ${modelLine}
+        ${costLine}
+      </div>`;
+    }
+    if (t.level === 'activity') {
+      return `
+      <div class="totcard${gone(t) ? ' uninstalled' : ''}">
+        <div class="totlabel"><span class="badge ${esc(t.tool)}">${esc(t.name)}</span>${gone(t) ? '已卸载' : '活动级'}</div>
+        <div class="totnum">${t.events || 0}</div>
+        <div class="totsub">累计活动事件 · 日志里没有 token 用量</div>
+      </div>`;
+    }
+    return `
+    <div class="totcard">
+      <div class="totlabel"><span class="badge">${esc(t.name)}</span>已安装</div>
+      <div class="totnum" style="font-size:16px;color:var(--dim)">未纳管</div>
+      <div class="totsub">本地没有可统计的用量记录</div>
+    </div>`;
+  }).join('');
+}
+
+function renderStats() {
+  if (!stats) return;
+  renderTotals();
+  renderTools();
+  const byDate = new Map(stats.days.map(d => [d.date, d]));
+  const cells = [];
+  const keys84 = []; // 与热力图同窗口的日期键，时段分布图直接复用
+  const dayMs = 86400000;
+  // 从今天往前取 84 天，保证网格右端永远是"今天"
+  const today = new Date(); today.setHours(12, 0, 0, 0);
+  for (let i = 83; i >= 0; i--) {
+    const d = new Date(today.getTime() - i * dayMs);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    keys84.push(key);
+    const day = byDate.get(key);
+    const dayTokens = day ? (day.tokensIn || 0) + (day.tokensOut || 0) : 0;
+    const v = hmMode === 'tokens' ? dayTokens : (day ? day.events : 0);
+    const level = hmMode === 'tokens'
+      ? (v === 0 ? 0 : v < 5e4 ? 1 : v < 5e5 ? 2 : v < 2e6 ? 3 : 4)
+      : (v === 0 ? 0 : v < 3 ? 1 : v < 8 ? 2 : v < 20 ? 3 : 4);
+    const tip = day
+      ? `${key} · ${day.events} 事件 · 入 ${fmtTokens(day.tokensIn) || 0} / 出 ${fmtTokens(day.tokensOut) || 0} · 缓存读 ${fmtTokens(day.tokensCr) || 0}`
+      : `${key} · 无记录`;
+    cells.push(`<span class="hc l${level}" title="${esc(tip)}"></span>`);
+  }
+  $('heatmap').innerHTML = cells.join('');
+  renderByHour(byDate, keys84);
+
+  $('projstats').innerHTML = stats.projects.length ? stats.projects.slice(0, 20).map(p => `
+    <div class="prow">
+      <span class="pname">${esc(p.name)}</span>
+      <span class="pnum">${p.events} 事件</span>
+      <span class="pnum" title="累计输入/输出 tokens">${fmtTokens(p.tokensIn) || 0} / ${fmtTokens(p.tokensOut) || 0}</span>
+      <span class="pnum">${relTime(p.lastActive)}</span>
+    </div>`).join('') : '<div class="prow"><span class="empty">还没有统计</span></div>';
+}
+
+// 近 84 天各时段（0–23 时）事件分布柱图：把 byHour 逐日求和，回答"我几点干活最猛"
+function renderByHour(byDate, keys) {
+  const sums = new Array(24).fill(0);
+  for (const k of keys) {
+    const day = byDate.get(k);
+    if (!day || !day.byHour) continue;
+    for (let h = 0; h < 24; h++) sums[h] += day.byHour[h] || 0;
+  }
+  const max = Math.max(...sums, 1);
+  const colors = ['#20242e', '#166534', '#16a34a', '#34d399', '#a7f3d0'];
+  // 颜色档按 84 天累计缩放（约等于热力图单日档位 × 84），高度按峰值归一
+  $('byhour').innerHTML = sums.map((v, h) => {
+    const lv = v === 0 ? 0 : v < 250 ? 1 : v < 700 ? 2 : v < 1700 ? 3 : 4;
+    return `<span style="height:${Math.max(2, Math.round(v / max * 60))}px;background:${colors[lv]}" title="${h} 时 · ${v} 事件"></span>`;
+  }).join('');
+}
+
+async function loadStats() {
+  try {
+    stats = await fetch('/api/stats').then(r => r.json());
+    render(); // 项目卡片上的累计 token 来自统计接口，拿到后整面板刷新一次
+    checkBudget();
+  } catch { /* 下一轮再试 */ }
+}
+
+// ---------- 日预算提醒：超限弹一次通知，每天至多吵一回 ----------
+function localDayKeyStr(d = new Date()) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function checkBudget() {
+  if (!stats || !stats.totals || !stats.totals.budget) return;
+  const b = stats.totals.budget, t = stats.totals.today;
+  const used = (t.in || 0) + (t.out || 0);
+  const overTok = b.dailyTokens && used > b.dailyTokens;
+  const overCost = b.dailyCost && t.cost != null && t.cost > b.dailyCost;
+  if (!overTok && !overCost) return;
+  const flag = 'wb-budget-' + localDayKeyStr();
+  if (localStorage.getItem(flag) === '1') return;
+  localStorage.setItem(flag, '1');
+  const body = overTok
+    ? `token 已用 ${fmtTokens(used)}（日预算 ${fmtTokens(b.dailyTokens)}）`
+    : `成本已达 ${stats.totals.currency || '$'}${t.cost.toFixed(2)}（预算 ${stats.totals.currency || '$'}${b.dailyCost}）`;
+  if (notifOn && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+    try { new Notification('今日用量已超预算', { body }); } catch {}
+  }
+  beep();
+}
+
+// ---------- 等待通知 ----------
+let notifOn = localStorage.getItem('wb-notify') === '1';
+let lastNotifAt = {};  // 会话 -> 上次通知时间，同一会话 2 分钟内不重复吵
+let prevPhases = null; // 上一次 state 的阶段快照；null 表示还没建立基线（不通知存量等待）
+
+function updateBell() {
+  $('notify').textContent = notifOn ? '🔔' : '🔕';
+  $('notify').classList.toggle('on', notifOn);
+}
+
+$('notify').onclick = async () => {
+  notifOn = !notifOn;
+  localStorage.setItem('wb-notify', notifOn ? '1' : '0');
+  updateBell();
+  if (notifOn && typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
+    await Notification.requestPermission();
+  }
+};
+
+function beep() {
+  try {
+    const ctx = new AudioContext();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(660, ctx.currentTime);
+    o.frequency.setValueAtTime(880, ctx.currentTime + 0.12);
+    g.gain.setValueAtTime(0.06, ctx.currentTime);
+    o.start();
+    o.stop(ctx.currentTime + 0.25);
+  } catch { /* 声音失败无所谓，别打扰监控本身 */ }
+}
+
+function checkNotifications(live) {
+  const keyOf = s => s.tool + '|' + s.file;
+  const cur = new Map(live.map(s => [keyOf(s), s.phase]));
+  if (prevPhases) {
+    for (const [k, phase] of cur) {
+      if (phase !== 'waiting' || prevPhases.get(k) === 'waiting') continue;
+      if (Date.now() - (lastNotifAt[k] || 0) < 120000) continue;
+      lastNotifAt[k] = Date.now();
+      const s = live.find(x => keyOf(x) === k);
+      const label = `${s.tool}${s.project ? ' · ' + s.project : ''}`;
+      if (notifOn && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        try {
+          const notif = new Notification(`【${label}】等你确认`, { body: s.title || s.file, tag: k });
+          notif.onclick = () => { window.focus(); highlightSessionByKey(k); };
+        } catch {}
+      }
+      beep();
+    }
+  }
+  prevPhases = cur;
+}
+
+// 通知点击定位：滚到对应会话卡片并闪一圈（Electron 托盘 toast 的 click 也调这里）
+function highlightSessionByKey(key) {
+  const sel = '.sess[data-skey="' + String(key).replace(/["\\]/g, '\\$&') + '"]';
+  const el = document.querySelector(sel);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.classList.add('flash');
+  setTimeout(() => el.classList.remove('flash'), 2600);
+}
+
+function connect() {
+  const ws = new WebSocket(`ws://${location.host}`);
+  ws.onopen = () => $('conn').classList.add('on');
+  ws.onclose = () => { $('conn').classList.remove('on'); setTimeout(connect, 3000); };
+  ws.onmessage = e => {
+    const m = JSON.parse(e.data);
+    if (m.type === 'state') { state = m.state; render(); }
+    if (m.type === 'tools') loadStats(); // 工具装/卸实时信号：立刻重拉统计刷新工具卡片
+  };
+}
+
+updateBell();
+updateHmSeg();
+tickClock();
+
+// ---------- 项目隐藏/恢复 ----------
+// 卡片右上角 ✕ 隐藏，底部"已隐藏"区点名字恢复；操作后拉一次 /api/state 让面板立刻刷新
+async function toggleHiddenProject(path, restore) {
+  try {
+    await fetch('/api/projects/hide', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-wb-hook': '1' },
+      body: JSON.stringify({ path, restore }),
+    });
+    state = await fetch('/api/state').then(r => r.json());
+    render();
+  } catch { /* 服务暂时不在；下一轮 WS 推送会修正显示 */ }
+}
+$('projects').addEventListener('click', e => {
+  const open = e.target.closest('[data-open]');
+  if (open) {
+    fetch('/api/projects/open', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-wb-hook': '1' },
+      body: JSON.stringify({ path: open.dataset.open }),
+    }).catch(() => {});
+  }
+  const edit = e.target.closest('[data-edit]');
+  if (edit) {
+    fetch('/api/projects/edit', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-wb-hook': '1' },
+      body: JSON.stringify({ path: edit.dataset.edit }),
+    }).catch(() => {});
+  }
+  const btn = e.target.closest('[data-hide]');
+  if (btn) toggleHiddenProject(btn.dataset.hide, false);
+});
+$('hiddenbar').addEventListener('click', e => {
+  const chip = e.target.closest('[data-restore]');
+  if (chip) toggleHiddenProject(chip.dataset.restore, true);
+});
+
+// ---------- 新建 / 添加项目 ----------
+// 桌面端有原生文件夹选择框（preload 暴露的 window.wb）；纯浏览器里没有，只留手输路径
+$('newproj-btn').onclick = () => {
+  const f = $('newproj-form');
+  f.style.display = f.style.display === 'flex' ? 'none' : 'flex';
+};
+if (window.wb && window.wb.chooseFolder) {
+  $('newproj-pick').onclick = async () => {
+    const dir = await window.wb.chooseFolder();
+    if (dir) $('newproj-path').value = dir;
+  };
+} else {
+  $('newproj-pick').style.display = 'none';
+}
+$('newproj-go').onclick = async () => {
+  const p = $('newproj-path').value.trim();
+  const msg = $('newproj-msg');
+  if (!p) { msg.textContent = '先填一个路径'; return; }
+  $('newproj-go').disabled = true;
+  msg.textContent = '';
+  try {
+    const r = await fetch('/api/projects/create', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-wb-hook': '1' },
+      body: JSON.stringify({ path: p }),
+    });
+    if (r.ok) {
+      $('newproj-path').value = '';
+      state = await fetch('/api/state').then(x => x.json());
+      render();
+    } else {
+      const j = await r.json().catch(() => ({}));
+      msg.textContent = j.message || ('失败 ' + r.status);
+    }
+  } catch {
+    msg.textContent = '请求失败，服务可能不在线';
+  }
+  $('newproj-go').disabled = false;
+};
+
+fetch('/api/state').then(r => r.json()).then(s => { state = s; render(); });
+connect();
+loadStats();
+setInterval(tickClock, 1000);    // 时钟每秒自走（渲染是 30 秒一轮，别让秒针僵死）
+setInterval(render, 30000);      // 相对时间随时间流逝自动刷新
+setInterval(loadStats, 60000);   // 统计每分钟拉一次
+
+function tickClock() {
+  $('clock').textContent = new Date().toLocaleString('zh-CN', { hour12: false });
+}
+
+function updateHmSeg() {
+  document.querySelectorAll('#hmseg button').forEach(b => b.classList.toggle('on', b.dataset.m === hmMode));
+  document.querySelectorAll('#hmseg button').forEach(b => b.onclick = () => {
+    hmMode = b.dataset.m;
+    localStorage.setItem('wb-hm', hmMode);
+    updateHmSeg();
+    renderStats();
+  });
+}
+</script>
+</body>
+</html>

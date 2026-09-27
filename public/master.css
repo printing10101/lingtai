@@ -1,0 +1,193 @@
+/* 总控大屏 — 玄墨中国风主题，与主看板/实验直播同一 family；自带全部样式，不依赖 style.css 避免类名冲突 */
+:root {
+  --bg: #0b0d11;
+  --surface: rgba(255, 252, 244, 0.04);
+  --surface-2: rgba(255, 252, 244, 0.07);
+  --line: rgba(255, 250, 240, 0.09);
+  --txt: #ecebe5;
+  --muted: #94938c;
+  --ok: #58b584;
+  --warn: #ddb54f;
+  --bad: #d45040;
+  --blue: #7ba3c9;
+  --accent: #3ebfa0;
+  --font-display: "Noto Serif SC", "Source Han Serif SC", "STZhongsong", "SimSun",
+                  "Microsoft YaHei UI", serif;
+  --dur: 0.18s;
+  --ease: ease;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--txt);
+  font: 14px/1.5 "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  min-height: 100vh;
+}
+/* 与主看板同一座巨构观星台铺底 */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(1200px 800px at 70% -10%, rgba(123, 163, 201, .06) 0%, transparent 55%),
+    url("bg-tower.svg") center bottom / cover no-repeat;
+}
+
+/* ---------- 顶栏 ---------- */
+header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(8px);
+  position: sticky; top: 0; background: rgba(11, 13, 17, 0.78); z-index: 5;
+}
+header h1 { font-family: var(--font-display); font-size: 18px; margin: 0; font-weight: 600; letter-spacing: 0.14em; }
+header .sub { color: var(--muted); font-size: 12px; margin: 0; }
+.src-light { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.dot.ok { background: var(--ok); box-shadow: 0 0 6px var(--ok); }
+.dot.stale { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+.dot.down { background: var(--bad); }
+.spacer { flex: 1; }
+header a.tower-link { color: var(--blue); text-decoration: none; font-size: 12.5px; }
+header a.tower-link:hover { text-decoration: underline; }
+#clock { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12.5px; }
+#banner {
+  display: none; margin: 10px 20px 0; padding: 8px 14px;
+  border: 1px solid var(--bad); border-radius: 8px; color: var(--bad); font-size: 13px;
+}
+
+/* ---------- 视图切换器（与主看板 .viewseg 同款观感） ---------- */
+.viewseg {
+  display: flex; align-items: center; gap: 2px;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px;
+  padding: 2px;
+}
+.viewseg .vt {
+  font-size: 12px; color: var(--muted); text-decoration: none;
+  padding: 5px 13px; border-radius: 999px;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.viewseg .vt:hover { color: var(--txt); }
+.viewseg .vt.on { background: rgba(255, 255, 255, 0.12); color: var(--txt); font-weight: 500; }
+
+/* ---------- 布局 ---------- */
+main { padding: 16px 20px 40px; }
+.grid {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  margin-bottom: 14px;
+}
+.grid.wide { grid-template-columns: 1.4fr 1fr 1fr; }
+@media (max-width: 1100px) { .grid.wide { grid-template-columns: 1fr; } }
+
+/* ---------- 卡片 ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.card h2 {
+  margin: 0 0 10px; font-family: var(--font-display); font-size: 13px; font-weight: 600;
+  color: var(--muted); letter-spacing: 0.18em;
+  display: flex; align-items: center; gap: 8px;
+}
+.card h2 .sub { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.offline {
+  color: var(--muted); font-size: 13px; padding: 14px 0;
+  border-left: 3px solid var(--muted); padding-left: 10px;
+}
+.offline.red { border-left-color: var(--bad); color: #ffb0ab; }
+.offline.amber { border-left-color: var(--warn); color: #e3c26d; }
+
+/* ---------- GPU 卡 ---------- */
+.gpu-row { display: flex; align-items: center; gap: 16px; }
+.ring {
+  --pct: 0;
+  width: 92px; height: 92px; border-radius: 50%; flex: none;
+  background: conic-gradient(var(--accent) calc(var(--pct) * 1%), rgba(255,255,255,0.08) 0);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.ring::before { content: ""; position: absolute; width: 70px; height: 70px; border-radius: 50%; background: #10141c; }
+.ring span { position: relative; z-index: 1; font-size: 15px; font-weight: 600; }
+.gpu-meta { flex: 1; font-size: 13px; }
+.gpu-meta .gname { color: var(--muted); font-size: 12px; margin-bottom: 6px; word-break: break-all; }
+.kv { display: flex; justify-content: space-between; gap: 10px; }
+.kv b { font-variant-numeric: tabular-nums; font-weight: 600; }
+.hot { color: var(--bad); }
+
+/* ---------- 驻留卡 ---------- */
+.model-id { font-size: 21px; font-weight: 700; margin: 4px 0 2px; word-break: break-all; }
+.resident-since { color: var(--muted); font-size: 12.5px; }
+.served { margin-top: 10px; font-size: 12px; color: var(--muted); line-height: 1.7; }
+.chip {
+  display: inline-block; padding: 1px 8px; border-radius: 20px; font-size: 11.5px;
+  background: var(--surface-2); border: 1px solid var(--line); margin: 1px 3px 1px 0;
+}
+
+/* ---------- Token 卡 ---------- */
+.tok-big { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tok-big small { font-size: 13px; color: var(--muted); font-weight: 400; }
+.tok-rows { margin-top: 8px; font-size: 13px; }
+.tok-rows .kv { padding: 3px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+.tok-rows .kv:last-child { border-bottom: none; }
+.over-budget { color: var(--bad); }
+
+/* ---------- 软件卡 ---------- */
+.app-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.app-row:last-child { border-bottom: none; }
+.app-name { flex: none; width: 118px; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-state { flex: 1; font-size: 12px; color: var(--muted); }
+.app-state.run { color: var(--ok); }
+.app-state.ext { color: var(--blue); }
+.app-state.busy { color: var(--warn); }
+.app-actions { display: flex; gap: 6px; align-items: center; }
+select.model-sel {
+  background: #151a23; color: var(--txt); border: 1px solid var(--line);
+  border-radius: 7px; font-size: 12px; padding: 3px 4px; max-width: 150px;
+}
+button.act {
+  background: var(--surface-2); color: var(--txt); border: 1px solid var(--line);
+  border-radius: 7px; font-size: 12px; padding: 3px 10px; cursor: pointer;
+}
+button.act:hover { background: rgba(255,255,255,0.12); }
+button.act:disabled { opacity: 0.45; cursor: default; }
+button.act.primary { border-color: var(--accent); color: var(--accent); }
+button.act.danger { border-color: rgba(212,80,64,0.5); color: var(--bad); }
+
+/* ---------- 会话卡 ---------- */
+.sess {
+  padding: 8px 10px; border-radius: 9px; margin-bottom: 8px;
+  background: var(--surface-2); border: 1px solid var(--line); font-size: 12.5px;
+}
+.sess.waiting { border-color: rgba(221,181,79,0.55); background: rgba(221,181,79,0.08); }
+.sess .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sess .m { color: var(--muted); font-size: 11.5px; margin-top: 2px; }
+.sess.waiting .m b { color: var(--warn); }
+
+/* ---------- 实验卡 ---------- */
+.exp-sum { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.run { padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12.5px; }
+.run:last-child { border-bottom: none; }
+.run .head { display: flex; align-items: center; gap: 7px; }
+.run .id { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.run .meta { color: var(--muted); font-size: 11.5px; margin-top: 1px; }
+.pbar { height: 4px; border-radius: 3px; background: rgba(255,255,255,0.08); margin-top: 5px; overflow: hidden; }
+.pbar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.st-running { color: var(--ok); } .st-stalled { color: var(--bad); }
+.st-interrupted { color: var(--warn); } .st-done { color: var(--muted); }
+
+/* ---------- 列表类小卡 ---------- */
+ul.plain { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }
+ul.plain li { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; gap: 8px; align-items: baseline; }
+ul.plain li:last-child { border-bottom: none; }
+ul.plain .grow { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note { color: var(--muted); font-size: 11px; margin-top: 8px; line-height: 1.6; }
+.mut { color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; }
+.up { color: var(--blue); } .dn { color: var(--warn); } .dirty { color: var(--warn); }

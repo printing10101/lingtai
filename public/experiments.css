@@ -1,0 +1,150 @@
+/* experiments.css — 实验直播页（/experiments）。复用 style.css 的设计令牌，
+   只补直播屏自己的布局：大进度、大曲线、大数字、时间轴、全量清单。 */
+
+.live {
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 500px at 75% -10%, rgba(62, 191, 160, .07), transparent 60%),
+    var(--canvas);
+}
+
+/* ── 顶条 ─────────────────────────────────────────────── */
+.live-top {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px var(--pad-x);
+  border-bottom: 1px solid var(--stroke);
+  background: rgba(11, 13, 17, .88);
+}
+.live-brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 16px; font-weight: 600; letter-spacing: .12em; }
+.live-brand > span { font-weight: 400; font-size: 12px; color: var(--ink-3); font-family: var(--font-mono); }
+.live-right { display: flex; align-items: center; gap: 18px; }
+.live-clock { font: 600 15px/1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--bad); animation: livePulse 1.6s var(--ease) infinite; }
+.live-dot.idle { background: var(--ink-3); animation: none; }
+@keyframes livePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 80, 64, .45); }
+  50% { box-shadow: 0 0 0 6px rgba(212, 80, 64, 0); }
+}
+
+/* ── 版心 ─────────────────────────────────────────────── */
+.live-wrap { max-width: 1360px; margin: 0 auto; padding: 22px var(--pad-x) 60px; }
+.src-cap { margin: 26px 0 10px; font-size: 12px; color: var(--ink-3); letter-spacing: .04em; }
+.src-cap:first-child { margin-top: 4px; }
+
+/* ── 英雄 run ─────────────────────────────────────────── */
+.hero-run {
+  border: 1px solid var(--stroke); border-radius: var(--r-lg);
+  background: linear-gradient(180deg, var(--s2), var(--s1));
+  padding: 20px 22px 18px;
+}
+.hero-run.trouble { border-color: rgba(212, 80, 64, .4); }
+.hero-run.mini { padding: 14px 16px 12px; margin-bottom: 10px; }
+.hero-run.idle-hero { text-align: left; }
+.run-head { display: flex; align-items: baseline; gap: 10px; }
+.run-title { display: flex; align-items: center; gap: 10px; font: 600 23px/1.2 var(--font-display); letter-spacing: .04em; }
+.hero-run.mini .run-title { font-size: 17px; }
+.run-live { width: 10px; height: 10px; border-radius: 50%; background: var(--bad); animation: livePulse 1.6s var(--ease) infinite; }
+.run-tags { font: 400 12.5px/1 var(--font-mono); color: var(--ink-2); }
+
+.hero-bar {
+  position: relative; height: 30px; margin: 16px 0 6px;
+  background: var(--s2); border: 1px solid var(--stroke); border-radius: 10px; overflow: hidden;
+}
+.hero-bar i {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, #2e8c74, #6fd0b2);
+  transition: width .8s var(--ease);
+}
+.hero-bar i.bad { background: linear-gradient(90deg, #c9352c, var(--bad)); }
+.hero-bar b {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-end;
+  padding: 0 14px; font: 700 15px/1 var(--font-mono); color: var(--ink);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
+}
+.hero-bar em {
+  position: absolute; inset: 0; display: flex; align-items: center;
+  padding: 0 14px; font: 500 12px/1 var(--font-mono); color: var(--ink-2);
+  font-style: normal; text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
+}
+
+/* ── 阶段药丸 ─────────────────────────────────────────── */
+.pills { display: flex; align-items: center; gap: 8px; margin: 12px 0 4px; flex-wrap: wrap; }
+.pill {
+  font: 500 12px/1 var(--font-mono); padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--stroke); color: var(--ink-3); background: var(--s1);
+}
+.pill.done { color: var(--ok); border-color: rgba(88, 181, 132, .35); }
+.pill.now { color: var(--ink); border-color: rgba(62, 191, 160, .55); background: rgba(62, 191, 160, .12); }
+.pill.stall { color: var(--bad); border-color: rgba(212, 80, 64, .4); }
+.pill.todo { color: var(--ink-3); }
+.pill-arrow { color: var(--ink-3); font-size: 11px; }
+
+/* ── 数字瓦片 ─────────────────────────────────────────── */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 14px 0 2px; }
+.ltile {
+  border: 1px solid var(--stroke); border-radius: var(--r-md);
+  background: var(--s1); padding: 12px 14px 11px;
+}
+.ltile b { display: block; font: 600 24px/1.1 var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.ltile span { display: block; margin-top: 4px; font-size: 11.5px; color: var(--ink-2); }
+.ltile small { display: block; margin-top: 3px; font-size: 10.5px; color: var(--ink-3); }
+.ltile.hot b { color: var(--bad); }
+.eta-line { margin: 12px 2px 0; }
+.eta-line b { font: 600 30px/1 var(--font-mono); color: var(--ink); }
+.eta-line span { margin-left: 10px; font-size: 12px; color: var(--ink-2); }
+
+/* ── 曲线与遥测双栏 ───────────────────────────────────── */
+.grid-live { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 14px; margin-top: 16px; }
+.curve-panel, .tele-panel {
+  border: 1px solid var(--stroke); border-radius: var(--r-lg);
+  background: var(--s1); padding: 16px 18px 14px; min-width: 0;
+}
+.panel-cap { font-size: 12px; color: var(--ink-3); letter-spacing: .04em; margin-bottom: 8px; }
+.bigcurve { display: block; width: 100%; height: 210px; }
+.bigcurve .s-best { fill: none; stroke: var(--ok); stroke-width: 1.8; vector-effect: non-scaling-stroke; }
+.bigcurve .s-mean { fill: none; stroke: var(--accent); stroke-width: 1.4; vector-effect: non-scaling-stroke; opacity: .9; }
+.bigcurve .cmark { stroke: var(--stroke-2); stroke-width: 1; stroke-dasharray: 3 4; }
+.bigcurve .cgrid { stroke: var(--stroke); stroke-width: 1; }
+.curve-axis { display: flex; justify-content: space-between; margin-top: 6px; font: 400 10.5px/1 var(--font-mono); color: var(--ink-3); }
+.gspark { display: block; width: 100%; height: 60px; margin-top: 10px; }
+.gspark polyline { fill: none; stroke: var(--accent); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+
+/* ── 链段时间轴 ───────────────────────────────────────── */
+.chain { margin-top: 14px; border: 1px solid var(--stroke); border-radius: var(--r-md); background: var(--s1); padding: 12px 14px; }
+.chain-head { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--ink-2); }
+.chain-head span { font-family: var(--font-mono); color: var(--ink-3); }
+.chain-segs { display: flex; gap: 4px; margin-top: 9px; }
+.chain-segs i { flex: 1; height: 12px; border-radius: 3px; min-width: 6px; }
+.chain-segs i.queued { background: var(--s3); }
+.chain-segs i.skip { background: rgba(88, 181, 132, .28); }
+.chain-segs i.done { background: var(--ok); }
+.chain-segs i.now { background: var(--accent); animation: segPulse 1.4s var(--ease) infinite; }
+@keyframes segPulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+.chain-eta { margin-top: 10px; font-size: 13px; color: var(--ink-2); }
+.chain-eta b { font: 600 17px/1 var(--font-mono); color: var(--ink); }
+.chain-eta span { display: block; margin-top: 3px; font-size: 11px; color: var(--ink-3); }
+
+/* ── 全量 run 清单 ────────────────────────────────────── */
+.inv { border: 1px solid var(--stroke); border-radius: var(--r-md); overflow: hidden; }
+.inv-head { padding: 9px 14px; font-size: 12px; color: var(--ink-3); border-bottom: 1px solid var(--stroke); background: var(--s1); }
+.inv-row {
+  display: grid; grid-template-columns: minmax(120px, 1.4fr) 84px minmax(0, 1.6fr);
+  align-items: center; gap: 10px;
+  padding: 9px 14px; border-bottom: 1px solid var(--stroke);
+}
+.inv-row:last-child { border-bottom: none; }
+.inv-row.bad { background: rgba(212, 80, 64, .06); }
+.inv-name { font: 500 12.5px/1.3 var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inv-nums { display: flex; gap: 18px; justify-content: flex-end; }
+.inv-nums > div { text-align: right; }
+.inv-nums b { display: block; font: 500 12.5px/1.2 var(--font-mono); font-variant-numeric: tabular-nums; }
+.inv-nums span { font-size: 10px; color: var(--ink-3); }
+
+.live-foot { margin-top: 26px; font-size: 11px; color: var(--ink-3); line-height: 1.7; }
+
+@media (max-width: 900px) {
+  .grid-live { grid-template-columns: minmax(0, 1fr); }
+  .inv-row { grid-template-columns: minmax(90px, 1fr) 74px; }
+  .inv-nums { grid-column: 1 / -1; justify-content: flex-start; }
+}

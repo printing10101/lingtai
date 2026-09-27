@@ -1,0 +1,19 @@
+{
+  "name": "token-tower",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Token 塔台（个人开发监控台）：聚合多项目 git 状态与多个 AI CLI 的实时活动",
+  "main": "electron/main.js",
+  "productName": "Token 塔台",
+  "scripts": {
+    "start": "node server.js",
+    "app": "electron .",
+    "selfcheck": "node scripts/selfcheck-qoder.js && node scripts/selfcheck-hermes.js && node scripts/selfcheck-dsh.js && node scripts/selfcheck-zcode.js && node scripts/selfcheck-llama.js && node scripts/selfcheck-away.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "electron": "44.0.0"
+  }
+}

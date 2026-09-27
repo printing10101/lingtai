@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="dark" />
+<title>灵台 · 本地模型总控</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── Tier 0 · 顶栏（唯一一层真磨砂） ───────────────────────────── -->
+<header class="topbar">
+  <div class="brand">
+    <img class="seal" src="icon.svg" alt="" width="32" height="32" aria-hidden="true">
+    <div class="brand-text">
+      <h1>灵台</h1>
+      <p class="sub">本地模型总控 · 只读采集，不改动 <code id="target"></code></p>
+    </div>
+  </div>
+
+  <div class="statusbar" role="group" aria-label="探针状态">
+    <div class="seg unknown" id="lamp-gateway"><i></i><b>网关</b><span>—</span></div>
+    <div class="seg unknown" id="lamp-resident"><i></i><b>驻留</b><span>—</span></div>
+    <div class="seg unknown" id="lamp-gpu"><i></i><b>显存</b><span>—</span></div>
+    <div class="seg unknown" id="lamp-exp"><i></i><b>实验</b><span>—</span></div>
+  </div>
+
+  <div class="topright">
+    <nav class="viewseg" aria-label="视图切换">
+      <a class="vt on" href="/" aria-current="page">看板</a>
+      <a class="vt" href="/experiments">实验直播</a>
+      <a class="vt" href="/master">总控</a>
+    </nav>
+    <div class="collect" id="gen-time">—</div>
+    <button class="icon-btn" id="pause" type="button" title="暂停采集 30 分钟" aria-label="暂停采集">
+      <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+        <rect x="5.5" y="4" width="3" height="12" rx="1.2" fill="currentColor"/>
+        <rect x="11.5" y="4" width="3" height="12" rx="1.2" fill="currentColor"/>
+      </svg>
+    </button>
+    <button class="icon-btn" id="now" type="button" title="立即刷新（自动刷新每 3 s 一次）" aria-label="立即刷新">
+      <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+        <path d="M16.5 10a6.5 6.5 0 1 1-2.2-4.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M15.4 2.6v3.1h-3.1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="cadence" aria-hidden="true"><i></i></div>
+</header>
+
+<main class="wrap">
+
+  <!-- ── Tier 1 · 英雄区：现在能不能用 ───────────────────────────── -->
+  <section class="hero" id="card-hero">
+    <div class="hero-col">
+      <div class="eyebrow">当前驻留的模型 <em id="resident-source"></em></div>
+      <div id="resident-body"></div>
+    </div>
+    <div class="hero-divider" aria-hidden="true"></div>
+    <div class="hero-col hero-side">
+      <div class="eyebrow">显存占用</div>
+      <div id="vram-body"></div>
+    </div>
+  </section>
+
+  <!-- ── Tier 1.5 · 启动器：先把网关切到目标模型，再拉起软件 ────────── -->
+  <section class="card" id="card-apps">
+    <div class="card-head">
+      <h2>自研软件</h2>
+      <p class="card-note">启动 = 先让网关驻留所选模型再拉起 · 免预热 / 开窗型见卡内口径 · 注册表 <span id="apps-file"></span></p>
+    </div>
+    <div class="card-body" id="apps-body"></div>
+  </section>
+
+  <!-- ── Tier 1.6 · 实验台：本机正在跑的实验、到哪了、还要多久 ──────── -->
+  <section class="card" id="card-exp">
+    <div class="card-head">
+      <h2>实验台</h2>
+      <p class="card-note">只读观测实验自产日志与结果目录 · report.md = 完成标志 · gen_log.csv 心跳 = 进度</p>
+    </div>
+    <div class="card-body" id="exp-body"></div>
+  </section>
+
+  <!-- ── Tier 2 · 抖动账本 ────────────────────────────────────────── -->
+  <section class="card" id="card-thrash">
+    <div class="card-head">
+      <h2>抖动账本</h2>
+      <p class="card-note">网关日志被 1 MB 截断，这份统计每次刷新重算 · 事件已自归档</p>
+    </div>
+    <div class="card-body" id="thrash-body"></div>
+  </section>
+
+  <!-- ── Tier 3 · 两个「谁」：显存被谁占着 | 谁在调用 ─────────────── -->
+  <div class="grid2">
+    <section class="card alert" id="card-vram-ledger">
+      <div class="card-head">
+        <h2>显存账本</h2>
+        <p class="card-note">端口不是 <span id="upstream-port"></span> 的 llama-server = 旁路 · 网关驻留进程 · 卡上其他计算进程</p>
+      </div>
+      <div class="card-body" id="vram-ledger-body"></div>
+    </section>
+
+    <section class="card" id="card-clients">
+      <div class="card-head">
+        <h2>谁在调用</h2>
+        <p class="card-note">连到网关端口的 ESTABLISHED 长连接</p>
+      </div>
+      <div class="card-body" id="clients-body"></div>
+    </section>
+  </div>
+
+  <section class="card" id="card-models">
+    <div class="card-head">
+      <h2>可用模型</h2>
+      <p class="card-note">注册表 ∩ 盘上权重 <span id="registry-file"></span></p>
+    </div>
+    <div class="card-body" id="models-body"></div>
+  </section>
+
+  <!-- ── Tier 4 · 台账：事件流 | 驻留历史 ─────────────────────────── -->
+  <section class="card drawer" id="dr-ledger" data-open="0">
+    <button class="drawer-head" type="button" aria-expanded="false" aria-controls="ledger-inner">
+      <svg class="chev" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3.5 2.2 7.8 6l-4.3 3.8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h2>台账</h2>
+      <span class="ledger-tabs" role="tablist" aria-label="台账分页">
+        <span class="seg-tab" data-tab="events" role="tab" aria-selected="true">事件流</span>
+        <span class="seg-tab" data-tab="history" role="tab" aria-selected="false">驻留历史</span>
+      </span>
+      <span class="drawer-meta" id="ledger-meta"></span>
+      <span class="drawer-count" id="ledger-count"></span>
+    </button>
+    <div class="drawer-wrap"><div class="drawer-inner">
+      <div class="drawer-pad" id="ledger-inner">
+        <div id="tab-events">
+          <div class="filterbar" id="events-filter" role="group" aria-label="按事件类型筛选"></div>
+          <div id="events-body"></div>
+        </div>
+        <div id="tab-history" class="hidden"><div id="history-body"></div></div>
+      </div>
+    </div></div>
+  </section>
+
+  <footer class="caveat" id="caveat"></footer>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

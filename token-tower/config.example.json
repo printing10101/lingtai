@@ -1,0 +1,33 @@
+{
+  "_comment": "塔台的采集配置。首次使用复制为 config.json 后按注释改成自己的路径与会话目录；路径用正斜杠。",
+  "port": 7345,
+  "projectRoots": ["C:/code", "D:/code"],
+  "extraProjects": [],
+  "pollIntervalMs": 30000,
+  "liveWindowMs": 180000,
+  "pricing": {
+    "_comment": "可选：分工具的每百万 token 单价（in/out/cr），全 0 即关闭成本估算",
+    "zcode": { "in": 0, "out": 0, "cr": 0 },
+    "codex": { "in": 0, "out": 0, "cr": 0 },
+    "claude": { "in": 0, "out": 0, "cr": 0 },
+    "qoder": { "in": 0, "out": 0, "cr": 0 },
+    "dsh": { "in": 0, "out": 0, "cr": 0 },
+    "workbuddy": { "in": 0, "out": 0, "cr": 0 },
+    "hermes": { "in": 0, "out": 0, "cr": 0 }
+  },
+  "sessionDirs": [
+    { "tool": "zcode", "dir": "C:/Users/<你>/.zcode/cli/rollout" },
+    { "tool": "codex", "dir": "C:/Users/<你>/.codex/sessions", "archiveDir": "C:/Users/<你>/.codex/archived_sessions" },
+    { "tool": "claude", "dir": "C:/Users/<你>/.claude/projects", "backfill": true },
+    { "tool": "qoder", "dir": "C:/Users/<你>/.qoder/projects", "backfill": true }
+  ],
+  "activityDirs": [],
+  "traceDirs": [],
+  "llamaLogDirs": [
+    { "tool": "llamacpp", "dir": "C:/path/to/llama-cpp" }
+  ],
+  "usageDbs": [
+    { "tool": "zcode", "db": "C:/Users/<你>/.zcode/cli/db/db.sqlite" },
+    { "tool": "hermes", "db": "C:/Users/<你>/AppData/Local/hermes/state.db" }
+  ]
+}

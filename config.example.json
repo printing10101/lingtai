@@ -1,0 +1,46 @@
+{
+  "_comment": "灵台的采集配置。首次使用复制为 config.json 后按注释改成自己的路径；所有路径支持绝对路径。",
+  "serverPort": 8099,
+  "proxyPort": 8080,
+  "upstreamPort": 8081,
+  "proxyHost": "127.0.0.1",
+  "proxyLog": "C:\\path\\to\\llama-cpp\\proxy.log",
+  "registryFile": "C:\\path\\to\\llama-cpp\\models.json",
+  "modelsDir": "C:\\path\\to\\llama-cpp\\models",
+  "extraModelDirs": [],
+  "apiKeyFile": "C:\\path\\to\\llama-cpp\\.api-key",
+  "tower": {
+    "base": "http://127.0.0.1:7345",
+    "timeoutMs": 1500
+  },
+  "control": {
+    "enabled": true
+  },
+  "historyDir": "history",
+  "historyMaxBytes": 8388608,
+  "alerts": {
+    "enabled": true,
+    "cooldownMin": 10
+  },
+  "cadenceMs": {
+    "clients": 3000,
+    "gateway": 5000,
+    "gpu": 10000,
+    "procCmdline": 15000,
+    "experiments": 15000
+  },
+  "experiments": {
+    "stallMin": 10,
+    "activeHours": 24,
+    "lookbackDays": 45,
+    "sources": [
+      {
+        "id": "my-experiment",
+        "name": "示例实验源",
+        "logsDir": "C:\\path\\to\\project\\results\\logs",
+        "runsDir": "C:\\path\\to\\project\\results",
+        "batchScriptRe": "可选：批进程命令行里的匹配串（批级归因用）"
+      }
+    ]
+  }
+}

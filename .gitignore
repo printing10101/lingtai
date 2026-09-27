@@ -1,0 +1,24 @@
+# 依赖与构建产物
+node_modules/
+dist/
+
+# 本机配置：含真实路径与软件注册表，公开仓库只保留 *.example.json 模板
+config.json
+apps.json
+token-tower/config.json
+
+# 运行数据：samples.jsonl 是看板自己落的历史，属机器状态不入库
+history/
+token-tower/data/
+
+# 采集工具的会话与扫描产物
+.mimosa/
+.zcode/
+.server.log
+docs-local/
+
+# 本地辅助物：旧版快照（diff 交给 git）、截图（可重新生成）、归档备份、临时脚本
+.baseline/
+.design-shots/
+token-tower/_archive/
+token-tower/.tmp-electron-install.js

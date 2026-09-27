@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>总控大屏 · 灵台</title>
+<link rel="stylesheet" href="master.css">
+</head>
+<body>
+<header>
+  <div>
+    <h1>总控大屏</h1>
+    <p class="sub">看板的卡 + 塔台的账 · 一屏总览</p>
+  </div>
+  <span class="src-light" id="light-tower"><i class="dot"></i>塔台</span>
+  <span class="spacer"></span>
+  <nav class="viewseg" aria-label="视图切换">
+    <a class="vt" href="/">看板</a>
+    <a class="vt" href="/experiments">实验直播</a>
+    <a class="vt on" href="/master" aria-current="page">总控</a>
+  </nav>
+  <a class="tower-link" id="link-tower" href="http://127.0.0.1:7345" target="_blank">在塔台打开 ↗</a>
+  <span id="clock"></span>
+</header>
+<div id="banner"></div>
+
+<main>
+  <!-- 第一排：GPU · 驻留 · 全机 token -->
+  <section class="grid">
+    <div class="card" id="card-gpu"><h2>GPU · 显存</h2></div>
+    <div class="card" id="card-resident"><h2>当前驻留 · 网关</h2></div>
+    <div class="card" id="card-tokens"><h2>全机 Token <span class="sub">· 塔台</span></h2></div>
+  </section>
+
+  <!-- 第二排：软件 · 会话 · 实验 -->
+  <section class="grid wide">
+    <div class="card" id="card-apps"><h2>自研软件 · 拉起</h2></div>
+    <div class="card" id="card-sessions"><h2>AI 会话 <span class="sub">· 塔台</span></h2></div>
+    <div class="card" id="card-exp"><h2>实验台</h2></div>
+  </section>
+
+  <!-- 第三排：调用方 · 项目 · 换卡摘要 -->
+  <section class="grid">
+    <div class="card" id="card-clients"><h2>谁在调用网关</h2></div>
+    <div class="card" id="card-projects"><h2>开发项目 <span class="sub">· 塔台</span></h2></div>
+    <div class="card" id="card-jitter"><h2>换卡摘要 · 今日</h2></div>
+  </section>
+</main>
+
+<script src="master.js"></script>
+</body>
+</html>

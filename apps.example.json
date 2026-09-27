@@ -1,0 +1,34 @@
+{
+  "_comment": "启动器的软件注册表。command 必须是字符串数组（argv 形式，第一项是可执行文件）。模型注入二选一：modelEnv = 注入所选模型的环境变量名（环境变量优先于各软件自己的 .env）；modelArg = 追加到命令行尾的参数名（如 -m）。launch: \"window\" = 用 cmd start 开独立终端窗口跑（交互式 TUI 用），本启动器不托管、记不了 PID、给不了停止，要求 command 形如 [cmd,/c,start,\"\",exe,...] 且 exe 在盘上。warm: false = 不消费网关的软件（如监控台），跳过模型校验与预热直接拉起。defaultModel 必须是 models.json 里注册且权重在盘的 id，否则启动时会被拒绝（防静默降级假成功）；healthCheckPort 用于防双拉：该端口已有人监听 = 软件已在外部运行。新增软件加一条即可，UI 会自动出现。",
+  "apps": [
+    {
+      "id": "example-backend",
+      "name": "示例 · 后端服务（环境变量注入）",
+      "cwd": "C:\\path\\to\\app",
+      "command": ["cmd", "/c", "start.bat"],
+      "modelEnv": "AI_MODEL",
+      "defaultModel": "qwen3-instruct-30b",
+      "healthCheckPort": 8001,
+      "note": "官方入口 start.bat；端口被占 = 后端已在外部运行"
+    },
+    {
+      "id": "example-tui",
+      "name": "示例 · 终端 TUI（命令行注入 + 开窗型）",
+      "cwd": "C:\\Users\\demo",
+      "command": ["cmd", "/c", "start", "", "C:\\path\\to\\tool\\bin\\tool.exe"],
+      "modelArg": "-m",
+      "launch": "window",
+      "defaultModel": "qwen3-instruct-30b",
+      "note": "开窗启动：-m 注入所选模型；不托管，停止请直接关那个窗口"
+    },
+    {
+      "id": "example-monitor",
+      "name": "示例 · 监控台（免预热）",
+      "cwd": "C:\\path\\to\\monitor",
+      "command": ["cmd", "/c", "start.bat"],
+      "warm": false,
+      "healthCheckPort": 7345,
+      "note": "不消费网关模型：免预热直接拉起"
+    }
+  ]
+}
